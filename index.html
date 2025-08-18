@@ -1,0 +1,230 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #70c5ce;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            border: 2px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        const bird = {
+            x: 100,
+            y: canvas.height / 2,
+            radius: 20,
+            velocity: 0,
+            gravity: 0.5,
+            jump: -10
+        };
+        let pipes = [];
+        let score = 0;
+        let gameOver = false;
+        const pipeWidth = 50;
+        const pipeGap = 150;
+        let pipeSpeed = 2;
+        let frameCount = 0;
+
+        // Bird image (simple circle for now)
+        function drawBird() {
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        // Pipe object
+        function createPipe() {
+            const minHeight = 100;
+            const maxHeight = canvas.height - pipeGap - minHeight;
+            const height = Math.random() * (maxHeight - minHeight) + minHeight;
+            return {
+                x: canvas.width,
+                topHeight: height,
+                bottomY: height + pipeGap,
+                counted: false
+            };
+        }
+
+        // Draw pipes
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                // Top pipe
+                ctx.fillStyle = 'green';
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+                // Bottom pipe
+                ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+            });
+        }
+
+        // Update bird position
+        function updateBird() {
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+        }
+
+        // Update pipes
+        function updatePipes() {
+            if (frameCount % 90 === 0) {
+                pipes.push(createPipe());
+            }
+            pipes.forEach(pipe => {
+                pipe.x -= pipeSpeed;
+            });
+            pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
+        }
+
+        // Check collision
+        function checkCollision() {
+            // Check canvas boundaries
+            if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+                return true;
+            }
+            // Check pipe collision
+            for (let pipe of pipes) {
+                if (
+                    bird.x + bird.radius > pipe.x &&
+                    bird.x - bird.radius < pipe.x + pipeWidth &&
+                    (bird.y - bird.radius < pipe.topHeight || bird.y + bird.radius > pipe.bottomY)
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Update score
+        function updateScore() {
+            pipes.forEach(pipe => {
+                if (!pipe.counted && bird.x > pipe.x + pipeWidth) {
+                    score++;
+                    pipe.counted = true;
+                }
+            });
+        }
+
+        // Draw score
+        function drawScore() {
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText(`Score: ${score}`, 10, 30);
+        }
+
+        // Game over screen
+        function drawGameOver() {
+            ctx.font = '40px Arial';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = '24px Arial';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+            ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 50);
+        }
+
+        // Main game loop
+        function gameLoop() {
+            if (gameOver) {
+                drawGameOver();
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            updateBird();
+            updatePipes();
+            updateScore();
+
+            drawPipes();
+            drawBird();
+            drawScore();
+
+            if (checkCollision()) {
+                gameOver = true;
+            }
+
+            frameCount++;
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listener for jump
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (gameOver) {
+                    // Reset game
+                    bird.y = canvas.height / 2;
+                    bird.velocity = 0;
+                    pipes = [];
+                    score = 0;
+                    gameOver = false;
+                    frameCount = 0;
+                    gameLoop();
+                } else {
+                    bird.velocity = bird.jump;
+                }
+            }
+        });
+
+        // Start game
+        gameLoop();
+    </script>
+</body>
+</html>
