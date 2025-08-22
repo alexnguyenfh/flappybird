@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Guessing Game</title>
+    <title>Crypto Oản Tù Tì</title>
     <style>
         * {
             margin: 0;
@@ -19,6 +19,7 @@
             justify-content: center;
             align-items: center;
             color: white;
+            padding: 1rem;
         }
 
         .game-container {
@@ -28,8 +29,8 @@
             padding: 2rem;
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            max-width: 500px;
-            width: 90%;
+            max-width: 800px;
+            width: 100%;
             text-align: center;
         }
 
@@ -74,7 +75,15 @@
             transform: none;
         }
 
-        .game-section {
+        .btn.secondary {
+            background: linear-gradient(45deg, #95E1D3, #F38BA8);
+        }
+
+        .btn.danger {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+        }
+
+        .room-section, .game-section {
             margin: 2rem 0;
             padding: 1.5rem;
             background: rgba(255, 255, 255, 0.05);
@@ -128,6 +137,89 @@
             border: 1px solid #2196F3;
         }
 
+        .status.warning {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #FFC107;
+            color: #333;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .player-card.active {
+            border-color: #4ECDC4;
+            background: rgba(78, 205, 196, 0.1);
+        }
+
+        .player-card.winner {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+            animation: glow 1s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+        }
+
+        .choice-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .choice-btn {
+            font-size: 3rem;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .choice-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .choice-btn.selected {
+            background: linear-gradient(45deg, #4ECDC4, #44A08D);
+            border-color: #4ECDC4;
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .info-box {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            text-align: center;
+        }
+
         .balance-info {
             display: flex;
             justify-content: space-between;
@@ -135,20 +227,6 @@
             padding: 1rem;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-        }
-
-        .game-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .stat-box {
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            text-align: center;
         }
 
         .hidden {
@@ -178,15 +256,60 @@
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
+
+        .room-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .room-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .room-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .countdown {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFD700;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .players-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .game-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .choice-btn {
+                font-size: 2rem;
+                width: 60px;
+                height: 60px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <h1 class="game-title">🎮 Crypto Game</h1>
+        <h1 class="game-title">✊✋✌️ Crypto Oản Tù Tì</h1>
         
         <!-- Wallet Connection Section -->
         <div class="wallet-section">
-            <h3>💰 Wallet Connection</h3>
+            <h3>💰 Kết nối ví</h3>
             <div id="walletStatus" class="status info">
                 Chưa kết nối ví
             </div>
@@ -207,52 +330,105 @@
             </div>
         </div>
 
-        <!-- Game Section -->
-        <div class="game-section">
-            <h3>🎯 Trò chơi đoán số</h3>
-            <p>Đoán số từ 1 đến 10. Nếu đúng bạn sẽ nhận được gấp đôi số tiền cược!</p>
+        <!-- Room Section -->
+        <div id="roomSection" class="room-section hidden">
+            <h3>🏠 Phòng chơi</h3>
+            
+            <div class="input-group">
+                <label>Tên phòng:</label>
+                <input type="text" id="roomName" placeholder="Nhập tên phòng">
+            </div>
             
             <div class="input-group">
                 <label>Số tiền cược (BNB):</label>
-                <input type="number" id="betAmount" placeholder="0.001" step="0.001" min="0.001">
+                <input type="number" id="betAmount" placeholder="0.01" step="0.001" min="0.001">
             </div>
             
-            <div class="input-group">
-                <label>Số bạn đoán (1-10):</label>
-                <input type="number" id="guessNumber" placeholder="5" min="1" max="10">
-            </div>
-            
-            <button id="playGame" class="btn" disabled>
-                🎲 Chơi ngay
+            <button id="createRoom" class="btn">
+                🏠 Tạo phòng
             </button>
             
-            <div id="gameResult" class="status info hidden">
-                Kết quả sẽ hiển thị ở đây
+            <button id="refreshRooms" class="btn secondary">
+                🔄 Làm mới
+            </button>
+            
+            <div class="room-list" id="roomList">
+                <!-- Rooms will be populated here -->
             </div>
         </div>
 
-        <!-- Game Stats -->
-        <div class="game-stats">
-            <div class="stat-box">
-                <div>🎮 Lượt chơi</div>
-                <div id="gamesPlayed">0</div>
+        <!-- Game Section -->
+        <div id="gameSection" class="game-section hidden">
+            <div id="gameStatus" class="status info">
+                Đang chờ người chơi thứ 2...
             </div>
-            <div class="stat-box">
-                <div>🏆 Thắng</div>
-                <div id="gamesWon">0</div>
+            
+            <div class="game-info">
+                <div class="info-box">
+                    <div>💰 Tiền cược</div>
+                    <div id="currentBet">0 BNB</div>
+                </div>
+                <div class="info-box">
+                    <div>🏆 Tiền thắng</div>
+                    <div id="winAmount">0 BNB</div>
+                </div>
+                <div class="info-box">
+                    <div>💼 Phí sàn (5%)</div>
+                    <div id="platformFee">0 BNB</div>
+                </div>
             </div>
+            
+            <div class="players-grid">
+                <div class="player-card" id="player1Card">
+                    <h4>👤 Người chơi 1</h4>
+                    <div id="player1Address">-</div>
+                    <div id="player1Choice" style="font-size: 3rem; margin: 1rem 0;">❓</div>
+                    <div id="player1Status">Đang chờ...</div>
+                </div>
+                
+                <div class="player-card" id="player2Card">
+                    <h4>👤 Người chơi 2</h4>
+                    <div id="player2Address">-</div>
+                    <div id="player2Choice" style="font-size: 3rem; margin: 1rem 0;">❓</div>
+                    <div id="player2Status">Đang chờ...</div>
+                </div>
+            </div>
+            
+            <div id="choiceSection" class="hidden">
+                <h4>Chọn lựa chọn của bạn:</h4>
+                <div class="choice-buttons">
+                    <button class="choice-btn" data-choice="rock">✊</button>
+                    <button class="choice-btn" data-choice="paper">✋</button>
+                    <button class="choice-btn" data-choice="scissors">✌️</button>
+                </div>
+                <button id="submitChoice" class="btn" disabled>
+                    ✅ Xác nhận
+                </button>
+            </div>
+            
+            <div id="countdown" class="countdown hidden"></div>
+            
+            <button id="leaveRoom" class="btn danger">
+                🚪 Rời phòng
+            </button>
         </div>
     </div>
 
     <script>
-        class CryptoGame {
+        class CryptoRockPaperScissors {
             constructor() {
                 this.web3 = null;
                 this.account = null;
                 this.balance = 0;
-                this.gamesPlayed = 0;
-                this.gamesWon = 0;
-                this.contractAddress = '0x0000000000000000000000000000000000000000'; // Placeholder
+                this.currentRoom = null;
+                this.isPlayer1 = false;
+                this.myChoice = null;
+                this.gameState = 'waiting'; // waiting, choosing, revealing, finished
+                this.platformFeePercent = 5; // 5% platform fee
+                
+                // Mock rooms data (in real app, this would be from backend/blockchain)
+                this.rooms = [];
+                this.gameData = {};
                 
                 this.initializeElements();
                 this.bindEvents();
@@ -260,29 +436,60 @@
             }
 
             initializeElements() {
+                // Wallet elements
                 this.connectWalletBtn = document.getElementById('connectWallet');
                 this.walletStatus = document.getElementById('walletStatus');
                 this.walletInfo = document.getElementById('walletInfo');
                 this.walletAddress = document.getElementById('walletAddress');
                 this.walletBalance = document.getElementById('walletBalance');
-                this.playGameBtn = document.getElementById('playGame');
+                
+                // Room elements
+                this.roomSection = document.getElementById('roomSection');
+                this.roomNameInput = document.getElementById('roomName');
                 this.betAmountInput = document.getElementById('betAmount');
-                this.guessNumberInput = document.getElementById('guessNumber');
-                this.gameResult = document.getElementById('gameResult');
-                this.gamesPlayedEl = document.getElementById('gamesPlayed');
-                this.gamesWonEl = document.getElementById('gamesWon');
+                this.createRoomBtn = document.getElementById('createRoom');
+                this.refreshRoomsBtn = document.getElementById('refreshRooms');
+                this.roomList = document.getElementById('roomList');
+                
+                // Game elements
+                this.gameSection = document.getElementById('gameSection');
+                this.gameStatus = document.getElementById('gameStatus');
+                this.currentBetEl = document.getElementById('currentBet');
+                this.winAmountEl = document.getElementById('winAmount');
+                this.platformFeeEl = document.getElementById('platformFee');
+                this.player1Card = document.getElementById('player1Card');
+                this.player2Card = document.getElementById('player2Card');
+                this.player1Address = document.getElementById('player1Address');
+                this.player2Address = document.getElementById('player2Address');
+                this.player1Choice = document.getElementById('player1Choice');
+                this.player2Choice = document.getElementById('player2Choice');
+                this.player1Status = document.getElementById('player1Status');
+                this.player2Status = document.getElementById('player2Status');
+                this.choiceSection = document.getElementById('choiceSection');
+                this.submitChoiceBtn = document.getElementById('submitChoice');
+                this.countdownEl = document.getElementById('countdown');
+                this.leaveRoomBtn = document.getElementById('leaveRoom');
+                
+                // Choice buttons
+                this.choiceBtns = document.querySelectorAll('.choice-btn');
             }
 
             bindEvents() {
                 this.connectWalletBtn.addEventListener('click', () => this.connectWallet());
-                this.playGameBtn.addEventListener('click', () => this.playGame());
+                this.createRoomBtn.addEventListener('click', () => this.createRoom());
+                this.refreshRoomsBtn.addEventListener('click', () => this.refreshRooms());
+                this.submitChoiceBtn.addEventListener('click', () => this.submitChoice());
+                this.leaveRoomBtn.addEventListener('click', () => this.leaveRoom());
+                
+                this.choiceBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => this.selectChoice(e.target.dataset.choice));
+                });
             }
 
             async checkWalletConnection() {
                 if (typeof window.ethereum !== 'undefined') {
                     this.web3 = window.ethereum;
                     
-                    // Check if already connected
                     const accounts = await this.web3.request({ method: 'eth_accounts' });
                     if (accounts.length > 0) {
                         this.account = accounts[0];
@@ -303,16 +510,12 @@
                     this.connectWalletBtn.innerHTML = '<span class="loading"></span> Đang kết nối...';
                     this.connectWalletBtn.disabled = true;
 
-                    // Request account access
                     const accounts = await window.ethereum.request({ 
                         method: 'eth_requestAccounts' 
                     });
                     
                     this.account = accounts[0];
-                    
-                    // Switch to BSC network if needed
                     await this.switchToBSC();
-                    
                     await this.updateWalletInfo();
                     
                 } catch (error) {
@@ -325,30 +528,26 @@
 
             async switchToBSC() {
                 try {
-                    // Try to switch to BSC network
                     await window.ethereum.request({
                         method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x38' }], // BSC Mainnet
+                        params: [{ chainId: '0x38' }],
                     });
                 } catch (switchError) {
-                    // This error code indicates that the chain has not been added to MetaMask.
                     if (switchError.code === 4902) {
                         try {
                             await window.ethereum.request({
                                 method: 'wallet_addEthereumChain',
-                                params: [
-                                    {
-                                        chainId: '0x38',
-                                        chainName: 'Binance Smart Chain',
-                                        nativeCurrency: {
-                                            name: 'BNB',
-                                            symbol: 'BNB',
-                                            decimals: 18,
-                                        },
-                                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                                        blockExplorerUrls: ['https://bscscan.com'],
+                                params: [{
+                                    chainId: '0x38',
+                                    chainName: 'Binance Smart Chain',
+                                    nativeCurrency: {
+                                        name: 'BNB',
+                                        symbol: 'BNB',
+                                        decimals: 18,
                                     },
-                                ],
+                                    rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                    blockExplorerUrls: ['https://bscscan.com'],
+                                }],
                             });
                         } catch (addError) {
                             console.error('Error adding BSC network:', addError);
@@ -359,25 +558,23 @@
 
             async updateWalletInfo() {
                 try {
-                    // Get balance
                     const balance = await window.ethereum.request({
                         method: 'eth_getBalance',
                         params: [this.account, 'latest']
                     });
                     
-                    // Convert from Wei to BNB
                     this.balance = parseInt(balance, 16) / Math.pow(10, 18);
                     
-                    // Update UI
                     this.walletAddress.textContent = this.formatAddress(this.account);
                     this.walletBalance.textContent = this.balance.toFixed(6);
                     
                     this.walletInfo.classList.remove('hidden');
+                    this.roomSection.classList.remove('hidden');
                     this.connectWalletBtn.innerHTML = '✅ Đã kết nối';
                     this.connectWalletBtn.disabled = true;
-                    this.playGameBtn.disabled = false;
                     
                     this.updateStatus('Đã kết nối thành công!', 'success');
+                    this.refreshRooms();
                     
                 } catch (error) {
                     console.error('Error updating wallet info:', error);
@@ -389,128 +586,234 @@
                 return address.substring(0, 6) + '...' + address.substring(38);
             }
 
-            async playGame() {
+            createRoom() {
+                const roomName = this.roomNameInput.value.trim();
                 const betAmount = parseFloat(this.betAmountInput.value);
-                const guessNumber = parseInt(this.guessNumberInput.value);
 
-                // Validate inputs
-                if (!betAmount || betAmount <= 0) {
-                    this.updateGameResult('Vui lòng nhập số tiền cược hợp lệ', 'error');
+                if (!roomName) {
+                    alert('Vui lòng nhập tên phòng');
                     return;
                 }
 
-                if (!guessNumber || guessNumber < 1 || guessNumber > 10) {
-                    this.updateGameResult('Vui lòng nhập số từ 1 đến 10', 'error');
+                if (!betAmount || betAmount <= 0) {
+                    alert('Vui lòng nhập số tiền cược hợp lệ');
                     return;
                 }
 
                 if (betAmount > this.balance) {
-                    this.updateGameResult('Số dư không đủ', 'error');
+                    alert('Số dư không đủ');
                     return;
                 }
 
-                try {
-                    this.playGameBtn.innerHTML = '<span class="loading"></span> Đang xử lý...';
-                    this.playGameBtn.disabled = true;
-
-                    // Send transaction (bet amount)
-                    const txHash = await this.sendBet(betAmount);
-                    
-                    // Simulate game logic (in real app, this would be handled by smart contract)
-                    const winningNumber = Math.floor(Math.random() * 10) + 1;
-                    const won = guessNumber === winningNumber;
-                    
-                    // Update stats
-                    this.gamesPlayed++;
-                    if (won) {
-                        this.gamesWon++;
-                        // In real game, winning amount would be sent back from contract
-                        this.updateGameResult(
-                            `🎉 Chúc mừng! Số đúng là ${winningNumber}. Bạn đã thắng ${(betAmount * 2).toFixed(6)} BNB!`, 
-                            'success'
-                        );
-                    } else {
-                        this.updateGameResult(
-                            `😢 Số đúng là ${winningNumber}. Bạn đã thua ${betAmount.toFixed(6)} BNB.`, 
-                            'error'
-                        );
-                    }
-
-                    // Update UI
-                    this.updateStats();
-                    await this.updateWalletInfo();
-
-                } catch (error) {
-                    console.error('Error playing game:', error);
-                    this.updateGameResult('Lỗi xử lý giao dịch: ' + error.message, 'error');
-                } finally {
-                    this.playGameBtn.innerHTML = '🎲 Chơi ngay';
-                    this.playGameBtn.disabled = false;
-                }
-            }
-
-            async sendBet(amount) {
-                const amountWei = '0x' + Math.floor(amount * Math.pow(10, 18)).toString(16);
-                
-                const transactionParameters = {
-                    to: this.contractAddress, // This would be your game contract address
-                    from: this.account,
-                    value: amountWei,
-                    gas: '0x5208', // 21000 in hex
+                const room = {
+                    id: Date.now().toString(),
+                    name: roomName,
+                    betAmount: betAmount,
+                    creator: this.account,
+                    player1: this.account,
+                    player2: null,
+                    status: 'waiting'
                 };
 
-                // For demo purposes, we'll just simulate the transaction
-                // In a real app, you would send this to your smart contract
-                return await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [transactionParameters],
-                });
+                this.rooms.push(room);
+                this.joinRoom(room.id);
+                this.refreshRooms();
             }
 
-            updateStatus(message, type) {
-                this.walletStatus.textContent = message;
-                this.walletStatus.className = `status ${type}`;
-            }
-
-            updateGameResult(message, type) {
-                this.gameResult.textContent = message;
-                this.gameResult.className = `status ${type}`;
-                this.gameResult.classList.remove('hidden');
+            refreshRooms() {
+                this.roomList.innerHTML = '';
                 
-                // Add pulse animation for wins
-                if (type === 'success') {
-                    this.gameResult.classList.add('pulse');
-                    setTimeout(() => {
-                        this.gameResult.classList.remove('pulse');
-                    }, 2000);
+                this.rooms.filter(room => room.status === 'waiting' && room.creator !== this.account).forEach(room => {
+                    const roomElement = document.createElement('div');
+                    roomElement.className = 'room-item';
+                    roomElement.innerHTML = `
+                        <div>
+                            <div style="font-weight: bold;">${room.name}</div>
+                            <div>Cược: ${room.betAmount} BNB</div>
+                            <div>Tạo bởi: ${this.formatAddress(room.creator)}</div>
+                        </div>
+                        <button class="btn" onclick="game.joinRoom('${room.id}')">
+                            🎮 Tham gia
+                        </button>
+                    `;
+                    this.roomList.appendChild(roomElement);
+                });
+
+                if (this.roomList.children.length === 0) {
+                    this.roomList.innerHTML = '<div class="status info">Không có phòng nào. Hãy tạo phòng mới!</div>';
                 }
             }
 
-            updateStats() {
-                this.gamesPlayedEl.textContent = this.gamesPlayed;
-                this.gamesWonEl.textContent = this.gamesWon;
-            }
-        }
+            joinRoom(roomId) {
+                const room = this.rooms.find(r => r.id === roomId);
+                if (!room) return;
 
-        // Initialize game when page loads
-        window.addEventListener('load', () => {
-            new CryptoGame();
-        });
+                if (room.betAmount > this.balance) {
+                    alert('Số dư không đủ để tham gia phòng này');
+                    return;
+                }
 
-        // Handle account changes
-        if (typeof window.ethereum !== 'undefined') {
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (accounts.length === 0) {
-                    location.reload();
+                this.currentRoom = room;
+                
+                if (room.creator === this.account) {
+                    this.isPlayer1 = true;
                 } else {
-                    location.reload();
+                    this.isPlayer1 = false;
+                    room.player2 = this.account;
+                    room.status = 'playing';
                 }
-            });
 
-            window.ethereum.on('chainChanged', () => {
-                location.reload();
-            });
-        }
-    </script>
-</body>
-</html>
+                this.roomSection.classList.add('hidden');
+                this.gameSection.classList.remove('hidden');
+                this.updateGameUI();
+
+                if (room.player2) {
+                    this.startGame();
+                }
+            }
+
+            updateGameUI() {
+                const room = this.currentRoom;
+                
+                this.currentBetEl.textContent = `${room.betAmount} BNB`;
+                const totalPot = room.betAmount * 2;
+                const platformFee = totalPot * this.platformFeePercent / 100;
+                const winnerAmount = totalPot - platformFee;
+                
+                this.winAmountEl.textContent = `${winnerAmount.toFixed(6)} BNB`;
+                this.platformFeeEl.textContent = `${platformFee.toFixed(6)} BNB`;
+                
+                this.player1Address.textContent = this.formatAddress(room.player1);
+                this.player2Address.textContent = room.player2 ? this.formatAddress(room.player2) : 'Đang chờ...';
+                
+                if (this.isPlayer1) {
+                    this.player1Card.classList.add('active');
+                } else {
+                    this.player2Card.classList.add('active');
+                }
+            }
+
+            startGame() {
+                this.gameState = 'choosing';
+                this.updateGameStatus('🎮 Trò chơi bắt đầu! Hãy chọn lựa chọn của bạn.', 'info');
+                this.choiceSection.classList.remove('hidden');
+                
+                // Start countdown
+                this.startCountdown(30);
+            }
+
+            startCountdown(seconds) {
+                this.countdownEl.classList.remove('hidden');
+                
+                const timer = setInterval(() => {
+                    this.countdownEl.textContent = `⏰ ${seconds}s`;
+                    seconds--;
+                    
+                    if (seconds < 0) {
+                        clearInterval(timer);
+                        this.countdownEl.classList.add('hidden');
+                        
+                        if (!this.myChoice && this.gameState === 'choosing') {
+                            // Auto select random choice if time runs out
+                            const choices = ['rock', 'paper', 'scissors'];
+                            const randomChoice = choices[Math.floor(Math.random() * choices.length)];
+                            this.selectChoice(randomChoice);
+                            this.submitChoice();
+                        }
+                    }
+                }, 1000);
+            }
+
+            selectChoice(choice) {
+                this.myChoice = choice;
+                
+                // Update UI
+                this.choiceBtns.forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.choice === choice) {
+                        btn.classList.add('selected');
+                    }
+                });
+                
+                this.submitChoiceBtn.disabled = false;
+            }
+
+            async submitChoice() {
+                if (!this.myChoice) return;
+
+                try {
+                    this.submitChoiceBtn.innerHTML = '<span class="loading"></span> Đang xử lý...';
+                    this.submitChoiceBtn.disabled = true;
+                    this.choiceSection.classList.add('hidden');
+
+                    // Send bet transaction
+                    await this.sendBet(this.currentRoom.betAmount);
+
+                    // Simulate opponent choice (in real game, this comes from other player)
+                    const choices = ['rock', 'paper', 'scissors'];
+                    const opponentChoice = choices[Math.floor(Math.random() * choices.length)];
+
+                    // Update game data
+                    this.gameData[this.currentRoom.id] = {
+                        player1Choice: this.isPlayer1 ? this.myChoice : opponentChoice,
+                        player2Choice: this.isPlayer1 ? opponentChoice : this.myChoice,
+                    };
+
+                    this.updateGameStatus('⌛ Đang chờ kết quả...', 'warning');
+
+                    // Simulate network delay
+                    setTimeout(() => {
+                        this.revealResults();
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('Error submitting choice:', error);
+                    this.updateGameStatus('Lỗi xử lý: ' + error.message, 'error');
+                    this.submitChoiceBtn.innerHTML = '✅ Xác nhận';
+                    this.submitChoiceBtn.disabled = false;
+                    this.choiceSection.classList.remove('hidden');
+                }
+            }
+
+            revealResults() {
+                const gameData = this.gameData[this.currentRoom.id];
+                const player1Choice = gameData.player1Choice;
+                const player2Choice = gameData.player2Choice;
+
+                // Update UI with choices
+                this.player1Choice.textContent = this.getChoiceEmoji(player1Choice);
+                this.player2Choice.textContent = this.getChoiceEmoji(player2Choice);
+
+                // Determine winner
+                const result = this.determineWinner(player1Choice, player2Choice);
+                
+                if (result === 'tie') {
+                    this.updateGameStatus('🤝 Hòa! Tiền cược sẽ được hoàn lại.', 'warning');
+                    this.player1Status.textContent = 'Hòa';
+                    this.player2Status.textContent = 'Hòa';
+                } else if (result === 'player1') {
+                    this.player1Card.classList.add('winner');
+                    this.player1Status.textContent = '🏆 Thắng';
+                    this.player2Status.textContent = '😢 Thua';
+                    
+                    if (this.isPlayer1) {
+                        this.updateGameStatus('🎉 Chúc mừng! Bạn đã thắng!', 'success');
+                    } else {
+                        this.updateGameStatus('😢 Bạn đã thua. Chơi lại lần sau nhé!', 'error');
+                    }
+                } else {
+                    this.player2Card.classList.add('winner');
+                    this.player1Status.textContent = '😢 Thua';
+                    this.player2Status.textContent = '🏆 Thắng';
+                    
+                    if (this.isPlayer1) {
+                        this.updateGameStatus('😢 Bạn đã thua. Chơi lại lần sau nhé!', 'error');
+                    } else {
+                        this.updateGameStatus('🎉 Chúc mừng! Bạn đã thắng!', 'success');
+                    }
+                }
+
+                this.gameState = 'finished';
+                
+                // Auto leave room after 5 seconds
+                setTimeout(()
