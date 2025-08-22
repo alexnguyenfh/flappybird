@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CERE Force - WebAR Experience</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <title>Crypto Guessing Game</title>
     <style>
         * {
             margin: 0;
@@ -14,685 +13,504 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #2d5a27, #4a7c59);
-            overflow: hidden;
-            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
         }
 
-        #container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
         }
 
-        #video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 1;
+        .game-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        #canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .ar-overlay {
-            position: absolute;
-            z-index: 3;
-            background: rgba(255, 255, 255, 0.95);
+        .wallet-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(76, 175, 80, 0.3);
-            transform: translateX(-50%) translateY(-50%);
-            max-width: 350px;
-            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-30%) translateZ(0);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(-50%) translateZ(0);
-            }
-        }
-
-        .product-header {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .product-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2d5a27;
-            margin-bottom: 5px;
-        }
-
-        .product-subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .gmp-badge {
-            background: #4CAF50;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .ingredient-section {
-            margin: 15px 0;
-        }
-
-        .ingredient-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2d5a27;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .ingredient-icon {
-            width: 20px;
-            height: 20px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin-right: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 12px;
-        }
-
-        .ingredient-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .ingredient-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
-        }
-
-        .ingredient-item:last-child {
-            border-bottom: none;
-        }
-
-        .ingredient-name {
-            color: #333;
-            font-weight: 500;
-        }
-
-        .ingredient-amount {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .benefits-section {
-            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .benefits-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2d5a27;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: center;
-            margin: 8px 0;
-            font-size: 13px;
-            color: #444;
-        }
-
-        .benefit-icon {
-            width: 16px;
-            height: 16px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 10px;
-            flex-shrink: 0;
-        }
-
-        .controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 4;
-        }
-
-        .control-btn {
-            background: rgba(76, 175, 80, 0.9);
-            color: white;
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
             border: none;
-            padding: 12px 20px;
+            padding: 12px 24px;
             border-radius: 25px;
-            margin: 5px;
-            cursor: pointer;
-            font-size: 14px;
+            color: white;
             font-weight: bold;
+            cursor: pointer;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            margin: 0.5rem;
         }
 
-        .control-btn:hover {
-            background: rgba(76, 175, 80, 1);
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .input-group {
+            margin: 1rem 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
         }
 
         .status {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 4;
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: bold;
         }
 
-        .floating-particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
+        .status.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
         }
 
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(76, 175, 80, 0.6);
+        .status.error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+
+        .status.info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid #2196F3;
+        }
+
+        .balance-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-box {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            animation: float 6s infinite ease-in-out;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
 
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-                opacity: 0;
-            }
-            50% {
-                transform: translateY(-100px) rotate(180deg);
-                opacity: 1;
-            }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .ar-detected {
+        .pulse {
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% {
-                transform: translateX(-50%) translateY(-50%) scale(1);
-            }
-            50% {
-                transform: translateX(-50%) translateY(-50%) scale(1.05);
-            }
-        }
-
-        .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 5;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(76, 175, 80, 0.2);
-            border-left: 4px solid #4CAF50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
-    <div id="container">
-        <video id="video" autoplay muted playsinline></video>
-        <canvas id="canvas"></canvas>
+    <div class="game-container">
+        <h1 class="game-title">🎮 Crypto Game</h1>
         
-        <div class="floating-particles" id="particles"></div>
-        
-        <div class="controls">
-            <button class="control-btn" onclick="startAR()">Bắt đầu AR</button>
-            <button class="control-btn" onclick="toggleInfo()">Chi tiết</button>
+        <!-- Wallet Connection Section -->
+        <div class="wallet-section">
+            <h3>💰 Wallet Connection</h3>
+            <div id="walletStatus" class="status info">
+                Chưa kết nối ví
+            </div>
+            
+            <button id="connectWallet" class="btn">
+                Kết nối Trust Wallet
+            </button>
+            
+            <div id="walletInfo" class="hidden">
+                <div class="balance-info">
+                    <span>Địa chỉ:</span>
+                    <span id="walletAddress">-</span>
+                </div>
+                <div class="balance-info">
+                    <span>Số dư BNB:</span>
+                    <span id="walletBalance">0</span>
+                </div>
+            </div>
         </div>
 
-        <div class="status" id="status">Nhấn "Bắt đầu AR" để quét sản phẩm</div>
-
-        <div class="loading-spinner" id="loading" style="display: none;">
-            <div class="spinner"></div>
+        <!-- Game Section -->
+        <div class="game-section">
+            <h3>🎯 Trò chơi đoán số</h3>
+            <p>Đoán số từ 1 đến 10. Nếu đúng bạn sẽ nhận được gấp đôi số tiền cược!</p>
+            
+            <div class="input-group">
+                <label>Số tiền cược (BNB):</label>
+                <input type="number" id="betAmount" placeholder="0.001" step="0.001" min="0.001">
+            </div>
+            
+            <div class="input-group">
+                <label>Số bạn đoán (1-10):</label>
+                <input type="number" id="guessNumber" placeholder="5" min="1" max="10">
+            </div>
+            
+            <button id="playGame" class="btn" disabled>
+                🎲 Chơi ngay
+            </button>
+            
+            <div id="gameResult" class="status info hidden">
+                Kết quả sẽ hiển thị ở đây
+            </div>
         </div>
 
-        <!-- AR Overlay for Product Info -->
-        <div class="ar-overlay" id="productInfo" style="display: none; top: 30%; left: 50%;">
-            <div class="product-header">
-                <div class="product-title">CERE Force</div>
-                <div class="product-subtitle">Ginkgo Biloba 180mg</div>
-                <span class="gmp-badge">GMP</span>
+        <!-- Game Stats -->
+        <div class="game-stats">
+            <div class="stat-box">
+                <div>🎮 Lượt chơi</div>
+                <div id="gamesPlayed">0</div>
             </div>
-
-            <div class="ingredient-section">
-                <div class="ingredient-title">
-                    <div class="ingredient-icon">🌿</div>
-                    Thành phần chính
-                </div>
-                <ul class="ingredient-list">
-                    <li class="ingredient-item">
-                        <span class="ingredient-name">Ginkgo Biloba</span>
-                        <span class="ingredient-amount">180mg</span>
-                    </li>
-                    <li class="ingredient-item">
-                        <span class="ingredient-name">Bạch Quả</span>
-                        <span class="ingredient-amount">✓</span>
-                    </li>
-                    <li class="ingredient-item">
-                        <span class="ingredient-name">Định Lăng</span>
-                        <span class="ingredient-amount">✓</span>
-                    </li>
-                    <li class="ingredient-item">
-                        <span class="ingredient-name">Vitamin B6</span>
-                        <span class="ingredient-amount">✓</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="benefits-section">
-                <div class="benefits-title">Công dụng</div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🧠</div>
-                    Hỗ trợ tăng tuần hoàn máu não
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">💡</div>
-                    Cải thiện trí nhớ và tập trung
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">⚡</div>
-                    Giảm các triệu chứng do thiếu năng tuần hoàn não
-                </div>
-                <div class="benefit-item">
-                    <div class="benefit-icon">🎯</div>
-                    Hỗ trợ cải thiện các triệu chứng sau tai biến mạch máu não
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 15px; font-size: 14px; font-weight: bold; color: #4CAF50;">
-                100 viên - Hỗ trợ tăng tuần hoàn máu não
+            <div class="stat-box">
+                <div>🏆 Thắng</div>
+                <div id="gamesWon">0</div>
             </div>
         </div>
     </div>
 
     <script>
-        let video, canvas, ctx;
-        let isARActive = false;
-        let animationFrame;
-        let detectionTimeout;
-        let scene, camera, renderer;
-        let arModel;
-
-        // Initialize AR system
-        async function initAR() {
-            video = document.getElementById('video');
-            canvas = document.getElementById('canvas');
-            ctx = canvas.getContext('2d');
-
-            // Set canvas size
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            // Initialize Three.js for 3D AR objects
-            initThreeJS();
-            
-            // Create floating particles
-            createParticles();
-        }
-
-        function initThreeJS() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.domElement.style.position = 'absolute';
-            renderer.domElement.style.top = '0';
-            renderer.domElement.style.left = '0';
-            renderer.domElement.style.zIndex = '2';
-            renderer.domElement.style.pointerEvents = 'none';
-            document.getElementById('container').appendChild(renderer.domElement);
-
-            // Create 3D model (floating capsules)
-            createARModel();
-        }
-
-        function createARModel() {
-            const group = new THREE.Group();
-
-            // Create floating capsules representing the product
-            for (let i = 0; i < 5; i++) {
-                const geometry = new THREE.SphereGeometry(0.1, 16, 16);
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: 0x4CAF50,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                const capsule = new THREE.Mesh(geometry, material);
+        class CryptoGame {
+            constructor() {
+                this.web3 = null;
+                this.account = null;
+                this.balance = 0;
+                this.gamesPlayed = 0;
+                this.gamesWon = 0;
+                this.contractAddress = '0x0000000000000000000000000000000000000000'; // Placeholder
                 
-                capsule.position.x = (Math.random() - 0.5) * 2;
-                capsule.position.y = (Math.random() - 0.5) * 2;
-                capsule.position.z = (Math.random() - 0.5) * 2;
-                
-                group.add(capsule);
+                this.initializeElements();
+                this.bindEvents();
+                this.checkWalletConnection();
             }
 
-            // Add lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(1, 1, 1);
-            scene.add(directionalLight);
-
-            camera.position.z = 3;
-            arModel = group;
-            scene.add(arModel);
-        }
-
-        function createParticles() {
-            const particlesContainer = document.getElementById('particles');
-            
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 6 + 's';
-                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
-                particlesContainer.appendChild(particle);
+            initializeElements() {
+                this.connectWalletBtn = document.getElementById('connectWallet');
+                this.walletStatus = document.getElementById('walletStatus');
+                this.walletInfo = document.getElementById('walletInfo');
+                this.walletAddress = document.getElementById('walletAddress');
+                this.walletBalance = document.getElementById('walletBalance');
+                this.playGameBtn = document.getElementById('playGame');
+                this.betAmountInput = document.getElementById('betAmount');
+                this.guessNumberInput = document.getElementById('guessNumber');
+                this.gameResult = document.getElementById('gameResult');
+                this.gamesPlayedEl = document.getElementById('gamesPlayed');
+                this.gamesWonEl = document.getElementById('gamesWon');
             }
-        }
 
-        async function startAR() {
-            const loading = document.getElementById('loading');
-            const status = document.getElementById('status');
-            
-            loading.style.display = 'block';
-            status.textContent = 'Đang khởi tạo camera...';
+            bindEvents() {
+                this.connectWalletBtn.addEventListener('click', () => this.connectWallet());
+                this.playGameBtn.addEventListener('click', () => this.playGame());
+            }
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
+            async checkWalletConnection() {
+                if (typeof window.ethereum !== 'undefined') {
+                    this.web3 = window.ethereum;
+                    
+                    // Check if already connected
+                    const accounts = await this.web3.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        this.account = accounts[0];
+                        await this.updateWalletInfo();
                     }
-                });
+                } else {
+                    this.updateStatus('Vui lòng cài đặt Trust Wallet hoặc MetaMask', 'error');
+                }
+            }
 
-                video.srcObject = stream;
-                video.play();
+            async connectWallet() {
+                try {
+                    if (typeof window.ethereum === 'undefined') {
+                        this.updateStatus('Vui lòng cài đặt Trust Wallet', 'error');
+                        return;
+                    }
 
-                video.onloadedmetadata = () => {
-                    loading.style.display = 'none';
-                    status.textContent = 'Hướng camera vào sản phẩm CERE Force';
-                    isARActive = true;
-                    startDetection();
+                    this.connectWalletBtn.innerHTML = '<span class="loading"></span> Đang kết nối...';
+                    this.connectWalletBtn.disabled = true;
+
+                    // Request account access
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    this.account = accounts[0];
+                    
+                    // Switch to BSC network if needed
+                    await this.switchToBSC();
+                    
+                    await this.updateWalletInfo();
+                    
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    this.updateStatus('Lỗi kết nối ví: ' + error.message, 'error');
+                    this.connectWalletBtn.innerHTML = 'Kết nối Trust Wallet';
+                    this.connectWalletBtn.disabled = false;
+                }
+            }
+
+            async switchToBSC() {
+                try {
+                    // Try to switch to BSC network
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0x38' }], // BSC Mainnet
+                    });
+                } catch (switchError) {
+                    // This error code indicates that the chain has not been added to MetaMask.
+                    if (switchError.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [
+                                    {
+                                        chainId: '0x38',
+                                        chainName: 'Binance Smart Chain',
+                                        nativeCurrency: {
+                                            name: 'BNB',
+                                            symbol: 'BNB',
+                                            decimals: 18,
+                                        },
+                                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                                        blockExplorerUrls: ['https://bscscan.com'],
+                                    },
+                                ],
+                            });
+                        } catch (addError) {
+                            console.error('Error adding BSC network:', addError);
+                        }
+                    }
+                }
+            }
+
+            async updateWalletInfo() {
+                try {
+                    // Get balance
+                    const balance = await window.ethereum.request({
+                        method: 'eth_getBalance',
+                        params: [this.account, 'latest']
+                    });
+                    
+                    // Convert from Wei to BNB
+                    this.balance = parseInt(balance, 16) / Math.pow(10, 18);
+                    
+                    // Update UI
+                    this.walletAddress.textContent = this.formatAddress(this.account);
+                    this.walletBalance.textContent = this.balance.toFixed(6);
+                    
+                    this.walletInfo.classList.remove('hidden');
+                    this.connectWalletBtn.innerHTML = '✅ Đã kết nối';
+                    this.connectWalletBtn.disabled = true;
+                    this.playGameBtn.disabled = false;
+                    
+                    this.updateStatus('Đã kết nối thành công!', 'success');
+                    
+                } catch (error) {
+                    console.error('Error updating wallet info:', error);
+                    this.updateStatus('Lỗi cập nhật thông tin ví', 'error');
+                }
+            }
+
+            formatAddress(address) {
+                return address.substring(0, 6) + '...' + address.substring(38);
+            }
+
+            async playGame() {
+                const betAmount = parseFloat(this.betAmountInput.value);
+                const guessNumber = parseInt(this.guessNumberInput.value);
+
+                // Validate inputs
+                if (!betAmount || betAmount <= 0) {
+                    this.updateGameResult('Vui lòng nhập số tiền cược hợp lệ', 'error');
+                    return;
+                }
+
+                if (!guessNumber || guessNumber < 1 || guessNumber > 10) {
+                    this.updateGameResult('Vui lòng nhập số từ 1 đến 10', 'error');
+                    return;
+                }
+
+                if (betAmount > this.balance) {
+                    this.updateGameResult('Số dư không đủ', 'error');
+                    return;
+                }
+
+                try {
+                    this.playGameBtn.innerHTML = '<span class="loading"></span> Đang xử lý...';
+                    this.playGameBtn.disabled = true;
+
+                    // Send transaction (bet amount)
+                    const txHash = await this.sendBet(betAmount);
+                    
+                    // Simulate game logic (in real app, this would be handled by smart contract)
+                    const winningNumber = Math.floor(Math.random() * 10) + 1;
+                    const won = guessNumber === winningNumber;
+                    
+                    // Update stats
+                    this.gamesPlayed++;
+                    if (won) {
+                        this.gamesWon++;
+                        // In real game, winning amount would be sent back from contract
+                        this.updateGameResult(
+                            `🎉 Chúc mừng! Số đúng là ${winningNumber}. Bạn đã thắng ${(betAmount * 2).toFixed(6)} BNB!`, 
+                            'success'
+                        );
+                    } else {
+                        this.updateGameResult(
+                            `😢 Số đúng là ${winningNumber}. Bạn đã thua ${betAmount.toFixed(6)} BNB.`, 
+                            'error'
+                        );
+                    }
+
+                    // Update UI
+                    this.updateStats();
+                    await this.updateWalletInfo();
+
+                } catch (error) {
+                    console.error('Error playing game:', error);
+                    this.updateGameResult('Lỗi xử lý giao dịch: ' + error.message, 'error');
+                } finally {
+                    this.playGameBtn.innerHTML = '🎲 Chơi ngay';
+                    this.playGameBtn.disabled = false;
+                }
+            }
+
+            async sendBet(amount) {
+                const amountWei = '0x' + Math.floor(amount * Math.pow(10, 18)).toString(16);
+                
+                const transactionParameters = {
+                    to: this.contractAddress, // This would be your game contract address
+                    from: this.account,
+                    value: amountWei,
+                    gas: '0x5208', // 21000 in hex
                 };
 
-            } catch (error) {
-                loading.style.display = 'none';
-                status.textContent = 'Không thể truy cập camera. Vui lòng cấp quyền.';
-                console.error('Camera access error:', error);
-            }
-        }
-
-        function startDetection() {
-            if (!isARActive) return;
-
-            // Simulate image detection (in real AR, this would use computer vision)
-            detectImage();
-            
-            // Animate 3D model
-            animate3D();
-            
-            animationFrame = requestAnimationFrame(startDetection);
-        }
-
-        function detectImage() {
-            // Simulate detection with random chance
-            if (Math.random() > 0.98) { // 2% chance per frame to simulate detection
-                onImageDetected();
-            }
-        }
-
-        function onImageDetected() {
-            const productInfo = document.getElementById('productInfo');
-            const status = document.getElementById('status');
-            
-            // Clear any existing timeout
-            if (detectionTimeout) {
-                clearTimeout(detectionTimeout);
-            }
-
-            // Show product information
-            productInfo.style.display = 'block';
-            productInfo.classList.add('ar-detected');
-            status.textContent = 'Đã phát hiện sản phẩm CERE Force!';
-
-            // Show 3D model
-            if (arModel) {
-                arModel.visible = true;
-            }
-
-            // Hide after 5 seconds
-            detectionTimeout = setTimeout(() => {
-                productInfo.style.display = 'none';
-                productInfo.classList.remove('ar-detected');
-                status.textContent = 'Hướng camera vào sản phẩm CERE Force';
-                if (arModel) {
-                    arModel.visible = false;
-                }
-            }, 5000);
-        }
-
-        function animate3D() {
-            if (arModel && arModel.visible) {
-                // Rotate the model
-                arModel.rotation.y += 0.01;
-                arModel.rotation.x += 0.005;
-
-                // Float up and down
-                arModel.position.y = Math.sin(Date.now() * 0.002) * 0.2;
-
-                // Animate individual capsules
-                arModel.children.forEach((capsule, index) => {
-                    capsule.rotation.x += 0.02;
-                    capsule.rotation.y += 0.01;
-                    capsule.position.y += Math.sin(Date.now() * 0.003 + index) * 0.005;
+                // For demo purposes, we'll just simulate the transaction
+                // In a real app, you would send this to your smart contract
+                return await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [transactionParameters],
                 });
             }
 
-            renderer.render(scene, camera);
-        }
+            updateStatus(message, type) {
+                this.walletStatus.textContent = message;
+                this.walletStatus.className = `status ${type}`;
+            }
 
-        function toggleInfo() {
-            const productInfo = document.getElementById('productInfo');
-            if (productInfo.style.display === 'none' || productInfo.style.display === '') {
-                onImageDetected(); // Force show info
-            } else {
-                productInfo.style.display = 'none';
-                if (arModel) {
-                    arModel.visible = false;
+            updateGameResult(message, type) {
+                this.gameResult.textContent = message;
+                this.gameResult.className = `status ${type}`;
+                this.gameResult.classList.remove('hidden');
+                
+                // Add pulse animation for wins
+                if (type === 'success') {
+                    this.gameResult.classList.add('pulse');
+                    setTimeout(() => {
+                        this.gameResult.classList.remove('pulse');
+                    }, 2000);
                 }
             }
+
+            updateStats() {
+                this.gamesPlayedEl.textContent = this.gamesPlayed;
+                this.gamesWonEl.textContent = this.gamesWon;
+            }
         }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (canvas) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            
-            if (camera && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            new CryptoGame();
         });
 
-        // Add some interactive effects
-        document.addEventListener('click', (e) => {
-            if (isARActive) {
-                // Create click effect
-                createClickEffect(e.clientX, e.clientY);
-            }
-        });
-
-        function createClickEffect(x, y) {
-            const effect = document.createElement('div');
-            effect.style.position = 'absolute';
-            effect.style.left = x + 'px';
-            effect.style.top = y + 'px';
-            effect.style.width = '20px';
-            effect.style.height = '20px';
-            effect.style.background = 'rgba(76, 175, 80, 0.8)';
-            effect.style.borderRadius = '50%';
-            effect.style.transform = 'translate(-50%, -50%)';
-            effect.style.animation = 'clickPulse 0.6s ease-out forwards';
-            effect.style.zIndex = '10';
-            effect.style.pointerEvents = 'none';
-            
-            document.body.appendChild(effect);
-            
-            setTimeout(() => {
-                document.body.removeChild(effect);
-            }, 600);
-        }
-
-        // Add click pulse animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes clickPulse {
-                0% {
-                    transform: translate(-50%, -50%) scale(0);
-                    opacity: 1;
-                }
-                100% {
-                    transform: translate(-50%, -50%) scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Initialize when page loads
-        window.addEventListener('load', initAR);
-
-        // Simulate automatic detection for demo purposes
-        setTimeout(() => {
-            if (!isARActive) {
-                const status = document.getElementById('status');
-                status.innerHTML = 'Demo: <span style="color: #4CAF50;">Nhấn "Chi tiết" để xem thông tin sản phẩm</span>';
-            }
-        }, 3000);
-
-        // Add some ambient animation to particles
-        setInterval(() => {
-            const particles = document.querySelectorAll('.particle');
-            particles.forEach(particle => {
-                if (Math.random() > 0.95) {
-                    particle.style.background = `rgba(${Math.floor(Math.random() * 100 + 76)}, ${Math.floor(Math.random() * 50 + 175)}, ${Math.floor(Math.random() * 50 + 80)}, 0.6)`;
+        // Handle account changes
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    location.reload();
+                } else {
+                    location.reload();
                 }
             });
-        }, 2000);
 
-        // Enhanced visual feedback for AR detection
-        function enhanceARFeedback() {
-            const overlay = document.getElementById('productInfo');
-            if (overlay.style.display !== 'none') {
-                // Add scanning line effect
-                const scanLine = document.createElement('div');
-                scanLine.style.position = 'absolute';
-                scanLine.style.top = '0';
-                scanLine.style.left = '0';
-                scanLine.style.right = '0';
-                scanLine.style.height = '2px';
-                scanLine.style.background = 'linear-gradient(90deg, transparent, #4CAF50, transparent)';
-                scanLine.style.animation = 'scan 2s linear infinite';
-                overlay.appendChild(scanLine);
-
-                // Remove scan line after animation
-                setTimeout(() => {
-                    if (scanLine.parentNode) {
-                        scanLine.parentNode.removeChild(scanLine);
-                    }
-                }, 2000);
-            }
+            window.ethereum.on('chainChanged', () => {
+                location.reload();
+            });
         }
-
-        // Add scan animation
-        const scanStyle = document.createElement('style');
-        scanStyle.textContent = `
-            @keyframes scan {
-                0% {
-                    transform: translateX(-100%);
-                }
-                100% {
-                    transform: translateX(100%);
-                }
-            }
-        `;
-        document.head.appendChild(scanStyle);
-
-        // Trigger enhanced feedback when AR is detected
-        document.addEventListener('DOMNodeInserted', function(e) {
-            if (e.target.id === 'productInfo' && e.target.style.display !== 'none') {
-                enhanceARFeedback();
-            }
-        });
     </script>
 </body>
 </html>
