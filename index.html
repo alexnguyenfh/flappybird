@@ -1,131 +1,468 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | META2</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek AI Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .api-key-section {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .api-key-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .api-key-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.ai {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .message.ai .message-bubble {
+            background: #f1f3f4;
+            color: #333;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-section {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            resize: none;
+            font-size: 14px;
+            max-height: 100px;
+            min-height: 44px;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .send-btn {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border: 2px solid #ddd;
+            border-top: 2px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 DeepSeek AI Chat</h1>
+            <p>Trò chuyện với AI thông minh</p>
         </div>
-      </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">META2</div>
-      </div>
+
+        <div class="api-key-section">
+            <input 
+                type="password" 
+                id="apiKeyInput" 
+                class="api-key-input" 
+                placeholder="Nhập API Key của bạn (sk-...)"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="chat-container">
+            <div class="messages" id="messagesContainer">
+                <div class="message ai">
+                    <div class="message-bubble">
+                        Xin chào! Tôi là DeepSeek AI. Hãy nhập API Key của bạn ở trên và bắt đầu trò chuyện với tôi. Bạn có thể hỏi tôi về bất kỳ điều gì! 😊
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-container">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Nhập tin nhắn của bạn..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
     <script>
+        class DeepSeekChat {
+            constructor() {
+                this.apiKey = '';
+                this.url = 'https://api.deepseek.com/chat/completions';
+                this.messages = [
+                    { role: 'system', content: 'Bạn là một trợ lý AI hữu ích và thông minh. Hãy trả lời một cách chi tiết và dễ hiểu.' }
+                ];
+                this.isLoading = false;
+                
+                this.initializeElements();
+                this.attachEventListeners();
+            }
 
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
+            initializeElements() {
+                this.apiKeyInput = document.getElementById('apiKeyInput');
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendBtn = document.getElementById('sendBtn');
+            }
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
+            attachEventListeners() {
+                // API Key input
+                this.apiKeyInput.addEventListener('input', (e) => {
+                    this.apiKey = e.target.value.trim();
+                    this.updateSendButtonState();
+                });
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/test2.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/test2.data.unityweb",
-        frameworkUrl: buildUrl + "/test2.framework.js.unityweb",
-        codeUrl: buildUrl + "/test2.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "META2",
-        productVersion: "0.1.0",
-        showBanner: unityShowBanner,
-      };
+                // Send button
+                this.sendBtn.addEventListener('click', () => this.sendMessage());
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+                // Enter key handling
+                this.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
 
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
+                // Auto-resize textarea
+                this.messageInput.addEventListener('input', () => {
+                    this.messageInput.style.height = 'auto';
+                    this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 100) + 'px';
+                });
+            }
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
+            updateSendButtonState() {
+                const hasApiKey = this.apiKey.length > 0;
+                const hasMessage = this.messageInput.value.trim().length > 0;
+                this.sendBtn.disabled = this.isLoading || !hasApiKey || !hasMessage;
+            }
 
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message || !this.apiKey || this.isLoading) return;
 
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
+                this.isLoading = true;
+                this.updateSendButtonState();
 
+                // Add user message to chat
+                this.addMessage('user', message);
+                this.messageInput.value = '';
+                this.messageInput.style.height = 'auto';
 
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+                // Show loading indicator
+                const loadingId = this.addMessage('ai', '', true);
 
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
+                try {
+                    // Add user message to conversation history
+                    this.messages.push({ role: 'user', content: message });
 
-      loadingBar.style.display = "block";
+                    const response = await this.callDeepSeekAPI();
+                    
+                    if (response && response.choices && response.choices[0]) {
+                        const aiResponse = response.choices[0].message.content;
+                        this.messages.push({ role: 'assistant', content: aiResponse });
+                        
+                        // Replace loading message with actual response
+                        this.updateMessage(loadingId, aiResponse);
+                    } else {
+                        throw new Error('Phản hồi không hợp lệ từ API');
+                    }
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                  unityInstance.SetFullscreen(1);
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.updateMessage(loadingId, `❌ Lỗi: ${error.message}`, true);
+                } finally {
+                    this.isLoading = false;
+                    this.updateSendButtonState();
+                }
+            }
+
+            async callDeepSeekAPI() {
+                const requestData = {
+                    model: 'deepseek-chat',
+                    messages: this.messages,
+                    stream: false,
+                    max_tokens: 2000,
+                    temperature: 0.7
                 };
-              }).catch((message) => {
-                alert(message);
-              });
+
+                const response = await fetch(this.url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMessage = `HTTP ${response.status}`;
+                    
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMessage = errorJson.error?.message || errorMessage;
+                    } catch (e) {
+                        // Use the HTTP status if JSON parsing fails
+                    }
+                    
+                    if (response.status === 401) {
+                        errorMessage = 'API Key không hợp lệ. Vui lòng kiểm tra lại API Key của bạn.';
+                    } else if (response.status === 429) {
+                        errorMessage = 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.';
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+
+                return await response.json();
+            }
+
+            addMessage(type, content, isLoading = false) {
+                const messageId = Date.now();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                messageDiv.id = `message-${messageId}`;
+
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                
+                if (isLoading) {
+                    bubbleDiv.innerHTML = '<div class="loading">Đang suy nghĩ</div>';
+                } else {
+                    bubbleDiv.textContent = content;
+                }
+
+                messageDiv.appendChild(bubbleDiv);
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+
+                return messageId;
+            }
+
+            updateMessage(messageId, content, isError = false) {
+                const messageElement = document.getElementById(`message-${messageId}`);
+                if (messageElement) {
+                    const bubble = messageElement.querySelector('.message-bubble');
+                    bubble.textContent = content;
+                    
+                    if (isError) {
+                        bubble.style.background = '#f8d7da';
+                        bubble.style.color = '#721c24';
+                        bubble.style.border = '1px solid #f5c6cb';
+                    }
+                }
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+        }
+
+        // Initialize the chat application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new DeepSeekChat();
+        });
+
+        // Update send button state on message input
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            
+            const updateButtonState = () => {
+                const sendBtn = document.getElementById('sendBtn');
+                const hasApiKey = apiKeyInput.value.trim().length > 0;
+                const hasMessage = messageInput.value.trim().length > 0;
+                sendBtn.disabled = !hasApiKey || !hasMessage;
             };
 
-      document.body.appendChild(script);
-
+            messageInput.addEventListener('input', updateButtonState);
+            apiKeyInput.addEventListener('input', updateButtonState);
+        });
     </script>
-  </body>
+</body>
 </html>
