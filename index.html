@@ -1,301 +1,131 @@
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Quầy hàng 3D - Grid</title>
-<style>
-  :root{
-    --bg:#0b0f14;
-    --card:#111827;
-    --card-2:#0f172a;
-    --txt:#e5e7eb;
-    --muted:#9ca3af;
-    --accent:#60a5fa;
-    --glow:#3b82f6;
-    --gap:24px;
-    --card-w:220px;
-    --card-h:280px;
-    --radius:18px;
-    --shadow:0 12px 35px rgba(0,0,0,.35);
-    --perspective:1100px;
-    --floor:#0a0f18;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    color:var(--txt);
-    background: radial-gradient(1000px 600px at 70% -10%, rgba(59,130,246,.25), transparent 60%), var(--bg);
-    overflow:hidden;
-  }
-
-  /* Header */
-  .ui{
-    position:fixed; inset:16px 16px auto 16px; display:flex; align-items:center; gap:12px; z-index:10;
-    padding:10px 14px; border-radius:14px; background:rgba(15,23,42,.65); backdrop-filter: blur(8px); box-shadow: var(--shadow);
-  }
-  .ui h1{margin:0; font-weight:700; font-size:18px; letter-spacing:.2px}
-  .ui .hint{color:var(--muted); font-size:13px}
-  .ui .controls{margin-left:auto; display:flex; gap:8px; align-items:center}
-  .ui button, .ui select{
-    appearance:none; background:#0b1220; color:var(--txt); border:1px solid #1f2937; padding:8px 10px; border-radius:10px; cursor:pointer;
-  }
-  .ui button:hover{border-color:#334155}
-  .ui .badge{
-    padding:6px 10px; border-radius:999px; background:#0b1220; border:1px solid #1f2937; color:var(--muted); font-size:12px
-  }
-
-  /* 3D stage */
-  .stage{
-    position:absolute; inset:0;
-    display:grid; place-items:center;
-    perspective: var(--perspective);
-    perspective-origin: 50% calc(50% - 10vh);
-  }
-  .world{
-    position:relative; transform-style:preserve-3d;
-    width: 1px; height:1px; /* acts as pivot */
-  }
-  /* Floor */
-  .floor{
-    position:absolute; inset:auto auto -4px -150vmax; width:300vmax; height:300vmax; transform: translateZ(-20px) rotateX(90deg);
-    background:
-      radial-gradient(closest-side, rgba(99,102,241,.18), transparent 70%) center/30% 30% no-repeat,
-      linear-gradient(#0b1220,#0b1220) padding-box,
-      conic-gradient(from 90deg at 1px 1px, #0d1422 90deg, transparent 0) 0 0/40px 40px;
-    border-top:1px solid #111827;
-    box-shadow: inset 0 0 120px rgba(0,0,0,.6);
-  }
-
-  /* Grid container holding cards in 3D */
-  .rack{
-    position:absolute; transform-style:preserve-3d;
-    display:grid; gap: var(--gap);
-    grid-template-columns: repeat(var(--cols), var(--card-w));
-    grid-auto-rows: var(--card-h);
-    padding: var(--gap);
-    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
-    border: 1px solid rgba(255,255,255,.06);
-    border-radius: 24px;
-    box-shadow: 0 40px 120px rgba(0,0,0,.45), inset 0 0 60px rgba(59,130,246,.08);
-  }
-
-  /* Product card */
-  .card{
-    position:relative; display:flex; flex-direction:column;
-    background: linear-gradient(180deg, var(--card), var(--card-2));
-    border:1px solid rgba(255,255,255,.06);
-    border-radius: var(--radius);
-    overflow:hidden;
-    box-shadow: var(--shadow);
-    transform-style: preserve-3d;
-    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  }
-  .card:focus-within{outline: 2px solid var(--glow); outline-offset: 2px}
-  .card:hover{
-    box-shadow: 0 25px 60px rgba(59,130,246,.22), 0 10px 25px rgba(0,0,0,.35);
-    border-color: rgba(59,130,246,.35);
-    transform: translateZ(6px);
-  }
-  .thumb{
-    position:relative; aspect-ratio: 4/3; background:#0b1220; overflow:hidden;
-  }
-  .thumb img{
-    width:100%; height:100%; object-fit:cover; display:block;
-    transform: translateZ(1px) scale(1.001);
-    transition: transform .35s ease;
-  }
-  .card:hover .thumb img{ transform: translateZ(8px) scale(1.05) }
-  .info{ padding:12px 14px; display:flex; flex-direction:column; gap:8px }
-  .title{ font-weight:700; font-size:16px; line-height:1.2 }
-  .price{ color:var(--accent); font-weight:700 }
-  .meta{ color:var(--muted); font-size:12px }
-  .cta{
-    margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .cta a{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    text-decoration:none; color:#0b1220; background: linear-gradient(180deg, #93c5fd, #60a5fa);
-    padding:9px 12px; font-weight:700; border-radius:12px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.2);
-    transform: translateZ(2px);
-  }
-  .cta a:hover{ filter: brightness(1.05) }
-  .cta .link{
-    color:var(--muted); text-decoration:none;
-  }
-  .cta .link:hover{ color:var(--txt) }
-
-  /* Tooltip dot */
-  .tag{
-    position:absolute; top:10px; left:10px; background: rgba(17,24,39,.7); border:1px solid rgba(255,255,255,.1);
-    padding:4px 8px; border-radius:999px; font-size:12px; color:#cbd5e1; backdrop-filter: blur(6px)
-  }
-
-  /* Responsive hint */
-  @media (max-width: 900px){
-    :root{ --card-w: 180px; --card-h: 250px; --gap:16px; --perspective:900px }
-    .ui{ inset:8px 8px auto 8px }
-  }
-
-  /* Help overlay for controls */
-  .help{
-    position: fixed; right: 16px; bottom: 16px; z-index:10;
-    padding:10px 12px; border-radius: 12px; background: rgba(15,23,42,.7); border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow);
-    color: var(--muted); font-size:13px; line-height:1.35;
-  }
-  kbd{
-    background:#0b1220; border:1px solid #1f2937; padding:2px 6px; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size:12px; color:#cbd5e1
-  }
-</style>
-</head>
-<body>
-  <div class="ui" role="region" aria-label="Bảng điều khiển">
-    <h1>Quầy hàng 3D</h1>
-    <span class="hint">Kéo để xoay • Cuộn để zoom • Nhấp vào sản phẩm để xem</span>
-    <div class="controls">
-      <span class="badge" id="countBadge">0 sản phẩm</span>
-      <label for="cols" class="sr-only">Cột</label>
-      <select id="cols" title="Số cột">
-        <option value="3">3 cột</option>
-        <option value="4" selected>4 cột</option>
-        <option value="5">5 cột</option>
-        <option value="6">6 cột</option>
-      </select>
-      <button id="resetView" title="Đặt lại góc nhìn">Đặt lại</button>
-    </div>
-  </div>
-
-  <div class="help">
-    <div><kbd>Drag</kbd> xoay</div>
-    <div><kbd>Wheel</kbd> zoom</div>
-    <div><kbd>← →</kbd> xoay • <kbd>↑ ↓</kbd> zoom</div>
-  </div>
-
-  <main class="stage" aria-label="Sân khấu 3D">
-    <section class="world" id="world">
-      <div class="rack" id="rack" aria-live="polite"></div>
-      <div class="floor" aria-hidden="true"></div>
-    </section>
-  </main>
-
-<script>
-/* ============ CẤU HÌNH SẢN PHẨM ============ */
-const PRODUCTS = [
-  // Bạn thay ảnh + link thật ở đây. Có thể dán bao nhiêu tuỳ thích:
-  { title: "Tai nghe Không dây X1", price: "1.290.000₫", img: "https://images.unsplash.com/photo-1518441294804-35f5e2d0c0fa?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/headphone-x1", tag: "HOT" },
-  { title: "Bàn phím Cơ Mini",      price: "1.990.000₫", img: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/keyboard-mini", tag: "NEW" },
-  { title: "Chuột Gaming Pro",      price: "890.000₫",  img: "https://images.unsplash.com/photo-1549995546-74dfcbf7dbed?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/mouse-pro" },
-  { title: "Smartwatch S9",         price: "3.490.000₫", img:"https://images.unsplash.com/photo-1526401281623-359dab4ea8d7?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/watch-s9" },
-  { title: "Loa Bluetooth GO",      price: "690.000₫",  img:"https://images.unsplash.com/photo-1518442663938-06a44e1e93de?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/speaker-go" },
-  { title: "Webcam HD 1080p",       price: "720.000₫",  img:"https://images.unsplash.com/photo-1523837157348-ffbdaccfc7de?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/webcam-1080" },
-  { title: "Ổ cứng SSD NVMe",       price: "1.590.000₫", img:"https://images.unsplash.com/photo-1587202372775-98927b35c2ea?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/ssd-nvme" },
-  { title: "Màn hình 27\" 2K",      price: "5.990.000₫", img:"https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/monitor-27" },
-  { title: "Đèn bàn LED",           price: "350.000₫",  img:"https://images.unsplash.com/photo-1456428199391-a3b1cb5e93ab?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/led-lamp" },
-  { title: "Sạc nhanh 65W",         price: "420.000₫",  img:"https://images.unsplash.com/photo-1585079542156-2755d9c8aff6?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/charger-65w" },
-  { title: "Máy ảnh Mirrorless",    price: "18.900.000₫", img:"https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/camera-ml" },
-  { title: "Micro Thu âm",          price: "1.350.000₫", img:"https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=1200&auto=format&fit=crop", url: "https://example.com/product/mic-studio" },
-];
-
-/* ============ THAM SỐ LƯỚI ============ */
-const rackEl = document.getElementById('rack');
-const worldEl = document.getElementById('world');
-const colsSelect = document.getElementById('cols');
-const countBadge = document.getElementById('countBadge');
-const resetBtn = document.getElementById('resetView');
-
-function setCSSVar(name, value){ document.documentElement.style.setProperty(name, value); }
-
-function renderProducts(products, cols=4){
-  setCSSVar('--cols', cols);
-  rackEl.innerHTML = '';
-  products.forEach((p, i) => {
-    const card = document.createElement('article');
-    card.tabIndex = 0;
-    card.className = 'card';
-    card.setAttribute('aria-label', p.title);
-
-    const label = p.tag ? `<span class="tag">${p.tag}</span>` : '';
-    card.innerHTML = `
-      ${label}
-      <div class="thumb"><img alt="${escapeHtml(p.title)}" referrerpolicy="no-referrer" src="${p.img}"></div>
-      <div class="info">
-        <div class="title">${escapeHtml(p.title)}</div>
-        <div class="meta">${(p.desc||'Sản phẩm chất lượng, bảo hành chính hãng.')}</div>
-        <div class="cta">
-          <span class="price">${escapeHtml(p.price || '')}</span>
-          <a href="${p.url}" target="_blank" rel="noopener">Xem sản phẩm →</a>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | NEYCODE</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-    `;
-    rackEl.appendChild(card);
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">NEYCODE</div>
+      </div>
+    </div>
+    <script>
 
-    // Card tilt on hover
-    bindTilt(card);
-  });
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
 
-  // Kích thước rack theo tổng cột/hàng
-  const rows = Math.ceil(products.length / cols);
-  const cardH = getCssPx('--card-h');
-  const gap = getCssPx('--gap');
-  const rackH = rows * cardH + (rows - 1) * gap + 2*gap;
-  rackEl.style.height = rackH + 'px';
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
 
-  countBadge.textContent = `${products.length} sản phẩm`;
-}
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/netcode.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/netcode.data.gz",
+        frameworkUrl: buildUrl + "/netcode.framework.js.gz",
+        codeUrl: buildUrl + "/netcode.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "NEYCODE",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
 
-/* ============ 3D CAMERA / ORBIT ============ */
-let rotY = -18;      // độ
-let rotX = -6;       // độ
-let camZ = 680;      // px (xa hơn = lớn hơn)
-const ROT_SPEED = 0.15;
-const Z_MIN = 300, Z_MAX = 1600;
-const X_MIN = -35, X_MAX = 15;
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
 
-function applyTransform(){
-  worldEl.style.transform = `translateZ(${-camZ}px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-  // Đặt vị trí kệ phía trước camera
-  const depth = 80;
-  rackEl.style.transform = `translateZ(${depth}px)`;
-}
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
 
-function resetView(){
-  rotY = -18; rotX = -6; camZ = 680; applyTransform();
-}
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
 
-/* Kéo chuột để xoay */
-let dragging = false, lastX=0, lastY=0;
-window.addEventListener('mousedown', (e)=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; });
-window.addEventListener('mouseup', ()=> dragging=false);
-window.addEventListener('mouseleave', ()=> dragging=false);
-window.addEventListener('mousemove', (e)=>{
-  if(!dragging) return;
-  const dx = e.clientX - lastX;
-  const dy = e.clientY - lastY;
-  rotY += dx * ROT_SPEED;
-  rotX = clamp(rotX - dy * ROT_SPEED*0.6, X_MIN, X_MAX);
-  lastX = e.clientX; lastY = e.clientY;
-  applyTransform();
-});
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
 
-/* Cuộn để zoom */
-window.addEventListener('wheel', (e)=>{
-  camZ = clamp(camZ + e.deltaY * 0.7, Z_MIN, Z_MAX);
-  applyTransform();
-}, {passive:true});
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
 
-/* Phím mũi tên */
-window.addEventListener('keydown', (e)=>{
-  if(e.key === 'ArrowLeft'){ rotY -= 3; applyTransform(); }
-  if(e.key === 'ArrowRight'){ rotY += 3; applyTransform(); }
-  if(e.key === 'ArrowUp'){ camZ = clamp(camZ - 20, Z_MIN, Z_MAX); applyTransform(); }
-  if(e.key === 'ArrowDown'){ camZ = clamp(camZ + 20, Z_MIN, Z_MAX); applyTransform(); }
-});
 
-/* Điều khiển cột và đặt lại */
-colsSelect.addEventListener('change', ()=>{
-  renderProducts(PRODUCTS, parseInt(colsSelect.value,10));
-});
-resetBtn.addEventLis
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+  </body>
+</html>
